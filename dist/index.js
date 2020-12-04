@@ -1,14 +1,15 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.resetPinCodeInternalStates = exports.deleteUserPinCode = exports.hasUserSetPinCode = void 0;
 const ApplicationLocked_1 = require("./src/ApplicationLocked");
 const PinCode_1 = require("./src/PinCode");
 const PinCodeChoose_1 = require("./src/PinCodeChoose");
 const PinCodeEnter_1 = require("./src/PinCodeEnter");
+// import { hasPinCode, deletePinCode, resetInternalStates, PinResultStatus } from "./src/utils";
 const utils_1 = require("./src/utils");
-const async_storage_1 = require("@react-native-community/async-storage");
+// import AsyncStorage from '@react-native-community/async-storage'
 const React = require("react");
 const react_native_1 = require("react-native");
+const SecureStore = require("expo-secure-store");
 const disableLockScreenDefault = false;
 const timePinLockedAsyncStorageNameDefault = "timePinLockedRNPin";
 const pinAttemptsAsyncStorageNameDefault = "pinAttemptsRNPin";
@@ -31,7 +32,8 @@ class PINCode extends React.PureComponent {
         this.state = { internalPinStatus: utils_1.PinResultStatus.initial, pinLocked: false };
         this.changeInternalStatus = this.changeInternalStatus.bind(this);
         this.renderLockedPage = this.renderLockedPage.bind(this);
-        async_storage_1.default.getItem(this.props.timePinLockedAsyncStorageName || timePinLockedAsyncStorageNameDefault).then((val) => {
+        // AsyncStorage.getItem(this.props.timePinLockedAsyncStorageName || timePinLockedAsyncStorageNameDefault).then((val) => {
+        SecureStore.getItemAsync(this.props.timePinLockedAsyncStorageName || timePinLockedAsyncStorageNameDefault).then((val) => {
             this.setState({ pinLocked: !!val });
         }).catch(error => {
             console.log('PINCode: ', error);
@@ -53,14 +55,12 @@ class PINCode extends React.PureComponent {
 PINCode.defaultProps = {
     styleMainContainer: null
 };
-function hasUserSetPinCode(serviceName) {
-    return utils_1.hasPinCode(serviceName || pinCodeKeychainNameDefault);
-}
-exports.hasUserSetPinCode = hasUserSetPinCode;
-function deleteUserPinCode(serviceName) {
-    return utils_1.deletePinCode(serviceName || pinCodeKeychainNameDefault);
-}
-exports.deleteUserPinCode = deleteUserPinCode;
+// export function hasUserSetPinCode(serviceName?: string) {
+//   return hasPinCode(serviceName || pinCodeKeychainNameDefault);
+// }
+// export function deleteUserPinCode(serviceName?: string) {
+//   return deletePinCode(serviceName || pinCodeKeychainNameDefault);
+// }
 function resetPinCodeInternalStates(pinAttempsStorageName, timePinLockedStorageName) {
     return utils_1.resetInternalStates([
         pinAttempsStorageName || pinAttemptsAsyncStorageNameDefault,

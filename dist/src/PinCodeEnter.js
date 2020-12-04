@@ -3,11 +3,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const delay_1 = require("./delay");
 const PinCode_1 = require("./PinCode");
 const utils_1 = require("./utils");
-const async_storage_1 = require("@react-native-community/async-storage");
+// import AsyncStorage from '@react-native-community/async-storage'
 const React = require("react");
 const react_native_1 = require("react-native");
-const Keychain = require("react-native-keychain");
+// import * as Keychain from 'react-native-keychain'
 const react_native_touch_id_1 = require("react-native-touch-id");
+const SecureStore = require("expo-secure-store");
 class PinCodeEnter extends React.PureComponent {
     constructor(props) {
         super(props);
@@ -22,15 +23,18 @@ class PinCodeEnter extends React.PureComponent {
                 }
                 this.setState({ pinCodeStatus: utils_1.PinResultStatus.initial });
                 this.props.changeInternalStatus(utils_1.PinResultStatus.initial);
-                const pinAttemptsStr = await async_storage_1.default.getItem(this.props.pinAttemptsAsyncStorageName);
+                // const pinAttemptsStr = await AsyncStorage.getItem(
+                const pinAttemptsStr = await SecureStore.getItemAsync(this.props.pinAttemptsAsyncStorageName);
                 let pinAttempts = pinAttemptsStr ? +pinAttemptsStr : 0;
                 const pin = this.props.storedPin || this.keyChainResult;
                 if (pin === pinCode) {
                     this.setState({ pinCodeStatus: utils_1.PinResultStatus.success });
-                    async_storage_1.default.multiRemove([
-                        this.props.pinAttemptsAsyncStorageName,
-                        this.props.timePinLockedAsyncStorageName
-                    ]);
+                    await SecureStore.deleteItemAsync(this.props.pinAttemptsAsyncStorageName);
+                    await SecureStore.deleteItemAsync(this.props.timePinLockedAsyncStorageName);
+                    // AsyncStorage.multiRemove([
+                    //   this.props.pinAttemptsAsyncStorageName,
+                    //   this.props.timePinLockedAsyncStorageName
+                    // ])
                     this.props.changeInternalStatus(utils_1.PinResultStatus.success);
                     if (!!this.props.finishProcess)
                         this.props.finishProcess(pinCode);
@@ -39,12 +43,14 @@ class PinCodeEnter extends React.PureComponent {
                     pinAttempts++;
                     if (+pinAttempts >= this.props.maxAttempts &&
                         !this.props.disableLockScreen) {
-                        await async_storage_1.default.setItem(this.props.timePinLockedAsyncStorageName, new Date().toISOString());
+                        // await AsyncStorage.setItem(
+                        await SecureStore.setItemAsync(this.props.timePinLockedAsyncStorageName, new Date().toISOString());
                         this.setState({ locked: true, pinCodeStatus: utils_1.PinResultStatus.locked });
                         this.props.changeInternalStatus(utils_1.PinResultStatus.locked);
                     }
                     else {
-                        await async_storage_1.default.setItem(this.props.pinAttemptsAsyncStorageName, pinAttempts.toString());
+                        // await AsyncStorage.setItem(
+                        await SecureStore.setItemAsync(this.props.pinAttemptsAsyncStorageName, pinAttempts.toString());
                         this.setState({ pinCodeStatus: utils_1.PinResultStatus.failure });
                         this.props.changeInternalStatus(utils_1.PinResultStatus.failure);
                     }
@@ -58,13 +64,16 @@ class PinCodeEnter extends React.PureComponent {
         this.state = { pinCodeStatus: utils_1.PinResultStatus.initial, locked: false };
         this.endProcess = this.endProcess.bind(this);
         this.launchTouchID = this.launchTouchID.bind(this);
-        if (!this.props.storedPin) {
-            Keychain.getInternetCredentials(this.props.pinCodeKeychainName, utils_1.noBiometricsConfig).then(result => {
-                this.keyChainResult = result && result.password || undefined;
-            }).catch(error => {
-                console.log('PinCodeEnter: ', error);
-            });
-        }
+        // if (!this.props.storedPin) {
+        //   Keychain.getInternetCredentials(
+        //     this.props.pinCodeKeychainName,
+        //     noBiometricsConfig
+        //   ).then(result => {
+        //     this.keyChainResult = result && result.password || undefined
+        //   }).catch(error => {
+        //     console.log('PinCodeEnter: ', error)
+        //   })
+        // }
     }
     componentDidMount() {
         if (!this.props.touchIDDisabled)

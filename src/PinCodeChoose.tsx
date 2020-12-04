@@ -3,7 +3,7 @@ import { noBiometricsConfig } from './utils'
 
 import * as React from 'react'
 import { StyleProp, StyleSheet, TextStyle, View, ViewStyle } from 'react-native'
-import * as Keychain from 'react-native-keychain'
+// import * as Keychain from 'react-native-keychain'
 
 /**
  * Pin Code Choose PIN Page
@@ -96,16 +96,16 @@ class PinCodeChoose extends React.PureComponent<IProps, IState> {
 
   endProcessConfirm = async (pinCode: string) => {
     if (pinCode === this.state.pinCode) {
-      if (this.props.storePin) {
+      // if (this.props.storePin) {
         this.props.storePin(pinCode)
-      } else {
-        await Keychain.setInternetCredentials(
-          this.props.pinCodeKeychainName,
-          this.props.pinCodeKeychainName,
-          pinCode,
-          noBiometricsConfig
-        )
-      }
+      // } else {
+      //   await Keychain.setInternetCredentials(
+      //     this.props.pinCodeKeychainName,
+      //     this.props.pinCodeKeychainName,
+      //     pinCode,
+      //     noBiometricsConfig
+      //   )
+      // }
       if (!!this.props.finishProcess) this.props.finishProcess(pinCode)
     } else {
       this.setState({ status: PinStatus.choose })

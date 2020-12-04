@@ -3,7 +3,7 @@ import { grid } from "./design/grid";
 import delay from "./delay";
 import { PinResultStatus } from "./utils";
 
-import AsyncStorage from "@react-native-community/async-storage";
+// import AsyncStorage from "@react-native-community/async-storage";
 import { easeLinear } from "d3-ease";
 import * as React from "react";
 import Animate from "react-move/Animate";
@@ -15,6 +15,7 @@ import {
   Platform
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
+import * as SecureStore from 'expo-secure-store'
 
 export type IProps = {
   buttonComponent?: any
@@ -83,7 +84,8 @@ class ApplicationLocked extends React.PureComponent<IProps, IState> {
   }
 
   componentDidMount() {
-    AsyncStorage.getItem(this.props.timePinLockedAsyncStorageName).then(val => {
+    // AsyncStorage.getItem(this.props.timePinLockedAsyncStorageName).then(val => {
+    SecureStore.getItemAsync(this.props.timePinLockedAsyncStorageName).then(val => {
       this.timeLocked = new Date(val ? val : "").getTime() + this.props.timeToLock;
       this.timer();
     });
@@ -95,10 +97,12 @@ class ApplicationLocked extends React.PureComponent<IProps, IState> {
     await delay(1000);
     if (timeDiff < 1000) {
       this.props.changeStatus(PinResultStatus.initial);
-      AsyncStorage.multiRemove([
-        this.props.timePinLockedAsyncStorageName,
-        this.props.pinAttemptsAsyncStorageName
-      ]);
+      // AsyncStorage.multiRemove([
+      //   this.props.timePinLockedAsyncStorageName,
+      //   this.props.pinAttemptsAsyncStorageName
+      // ]);
+      await SecureStore.deleteItemAsync(this.props.timePinLockedAsyncStorageName);
+      await SecureStore.deleteItemAsync(this.props.pinAttemptsAsyncStorageName);
     }
     if (!this.isUnmounted) {
       this.timer();

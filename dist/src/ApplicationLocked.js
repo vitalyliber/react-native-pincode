@@ -4,12 +4,13 @@ const colors_1 = require("./design/colors");
 const grid_1 = require("./design/grid");
 const delay_1 = require("./delay");
 const utils_1 = require("./utils");
-const async_storage_1 = require("@react-native-community/async-storage");
+// import AsyncStorage from "@react-native-community/async-storage";
 const d3_ease_1 = require("d3-ease");
 const React = require("react");
 const Animate_1 = require("react-move/Animate");
 const react_native_1 = require("react-native");
 const MaterialIcons_1 = require("react-native-vector-icons/MaterialIcons");
+const SecureStore = require("expo-secure-store");
 class ApplicationLocked extends React.PureComponent {
     constructor(props) {
         super(props);
@@ -103,7 +104,8 @@ class ApplicationLocked extends React.PureComponent {
         this.renderTitle = this.renderTitle.bind(this);
     }
     componentDidMount() {
-        async_storage_1.default.getItem(this.props.timePinLockedAsyncStorageName).then(val => {
+        // AsyncStorage.getItem(this.props.timePinLockedAsyncStorageName).then(val => {
+        SecureStore.getItemAsync(this.props.timePinLockedAsyncStorageName).then(val => {
             this.timeLocked = new Date(val ? val : "").getTime() + this.props.timeToLock;
             this.timer();
         });
@@ -114,10 +116,12 @@ class ApplicationLocked extends React.PureComponent {
         await delay_1.default(1000);
         if (timeDiff < 1000) {
             this.props.changeStatus(utils_1.PinResultStatus.initial);
-            async_storage_1.default.multiRemove([
-                this.props.timePinLockedAsyncStorageName,
-                this.props.pinAttemptsAsyncStorageName
-            ]);
+            // AsyncStorage.multiRemove([
+            //   this.props.timePinLockedAsyncStorageName,
+            //   this.props.pinAttemptsAsyncStorageName
+            // ]);
+            await SecureStore.deleteItemAsync(this.props.timePinLockedAsyncStorageName);
+            await SecureStore.deleteItemAsync(this.props.pinAttemptsAsyncStorageName);
         }
         if (!this.isUnmounted) {
             this.timer();

@@ -2,7 +2,7 @@ import delay from './delay'
 import PinCode, { PinStatus } from './PinCode'
 import { PinResultStatus, noBiometricsConfig } from './utils'
 
-import AsyncStorage from '@react-native-community/async-storage'
+// import AsyncStorage from '@react-native-community/async-storage'
 import * as React from 'react'
 import {
   StyleProp,
@@ -11,8 +11,9 @@ import {
   View,
   ViewStyle
 } from 'react-native'
-import * as Keychain from 'react-native-keychain'
+// import * as Keychain from 'react-native-keychain'
 import TouchID from 'react-native-touch-id'
+import * as SecureStore from 'expo-secure-store'
 
 /**
  * Pin Code Enter PIN Page
@@ -110,16 +111,16 @@ class PinCodeEnter extends React.PureComponent<IProps, IState> {
     this.state = { pinCodeStatus: PinResultStatus.initial, locked: false }
     this.endProcess = this.endProcess.bind(this)
     this.launchTouchID = this.launchTouchID.bind(this)
-    if (!this.props.storedPin) {
-      Keychain.getInternetCredentials(
-        this.props.pinCodeKeychainName,
-        noBiometricsConfig
-      ).then(result => {
-        this.keyChainResult = result && result.password || undefined
-      }).catch(error => {
-        console.log('PinCodeEnter: ', error)
-      })
-    }
+    // if (!this.props.storedPin) {
+    //   Keychain.getInternetCredentials(
+    //     this.props.pinCodeKeychainName,
+    //     noBiometricsConfig
+    //   ).then(result => {
+    //     this.keyChainResult = result && result.password || undefined
+    //   }).catch(error => {
+    //     console.log('PinCodeEnter: ', error)
+    //   })
+    // }
   }
 
   componentDidMount() {
@@ -160,17 +161,20 @@ class PinCodeEnter extends React.PureComponent<IProps, IState> {
       }
       this.setState({ pinCodeStatus: PinResultStatus.initial })
       this.props.changeInternalStatus(PinResultStatus.initial)
-      const pinAttemptsStr = await AsyncStorage.getItem(
+      // const pinAttemptsStr = await AsyncStorage.getItem(
+      const pinAttemptsStr = await SecureStore.getItemAsync(
         this.props.pinAttemptsAsyncStorageName
       )
       let pinAttempts = pinAttemptsStr ? +pinAttemptsStr : 0
       const pin = this.props.storedPin || this.keyChainResult
       if (pin === pinCode) {
         this.setState({ pinCodeStatus: PinResultStatus.success })
-        AsyncStorage.multiRemove([
-          this.props.pinAttemptsAsyncStorageName,
-          this.props.timePinLockedAsyncStorageName
-        ])
+        await SecureStore.deleteItemAsync(this.props.pinAttemptsAsyncStorageName);
+        await SecureStore.deleteItemAsync(this.props.timePinLockedAsyncStorageName);
+        // AsyncStorage.multiRemove([
+        //   this.props.pinAttemptsAsyncStorageName,
+        //   this.props.timePinLockedAsyncStorageName
+        // ])
         this.props.changeInternalStatus(PinResultStatus.success)
         if (!!this.props.finishProcess)
           this.props.finishProcess(pinCode as string)
@@ -180,14 +184,16 @@ class PinCodeEnter extends React.PureComponent<IProps, IState> {
           +pinAttempts >= this.props.maxAttempts &&
           !this.props.disableLockScreen
         ) {
-          await AsyncStorage.setItem(
+          // await AsyncStorage.setItem(
+          await SecureStore.setItemAsync(
             this.props.timePinLockedAsyncStorageName,
             new Date().toISOString()
           )
           this.setState({ locked: true, pinCodeStatus: PinResultStatus.locked })
           this.props.changeInternalStatus(PinResultStatus.locked)
         } else {
-          await AsyncStorage.setItem(
+          // await AsyncStorage.setItem(
+          await SecureStore.setItemAsync(
             this.props.pinAttemptsAsyncStorageName,
             pinAttempts.toString()
           )
